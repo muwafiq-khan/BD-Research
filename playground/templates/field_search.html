@@ -1,0 +1,285 @@
+{% load custom_filters %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Results - {{ query }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .search-header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .search-form {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .search-input {
+            flex: 1;
+            padding: 15px 20px;
+            font-size: 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            outline: none;
+        }
+        
+        .search-input:focus {
+            border-color: #667eea;
+        }
+        
+        .search-button {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .results-info {
+            color: white;
+            margin-bottom: 20px;
+            font-size: 1.2em;
+        }
+        
+        .field-card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s;
+        }
+        
+        .field-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        .field-header {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .field-name {
+            font-size: 2em;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .field-info {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+        
+        .field-badge {
+            padding: 5px 15px;
+            background: #f5f5f5;
+            border-radius: 20px;
+            font-size: 0.9em;
+            color: #666;
+        }
+        
+        .subfields-section {
+            margin-top: 20px;
+        }
+        
+        .subfields-title {
+            font-size: 1.3em;
+            color: #667eea;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .subfield-count {
+            background: #667eea;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 15px;
+            font-size: 0.8em;
+        }
+        
+        .subfields-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+        }
+        
+        .subfield-item {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .subfield-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.5);
+        }
+        
+        .subfield-name {
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        
+        .subfield-details {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        
+        .no-results {
+            background: white;
+            padding: 60px 30px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .no-results-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+        
+        .no-results h2 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .no-results p {
+            color: #666;
+            font-size: 1.1em;
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: white;
+            text-decoration: none;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px 20px;
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+        
+        .back-link:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .no-subfields {
+            padding: 20px;
+            background: #fff3cd;
+            border-radius: 10px;
+            color: #856404;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="search-header">
+            <form action="{% url 'field_search' %}" method="get" class="search-form">
+                <input 
+                    type="text" 
+                    name="q" 
+                    class="search-input" 
+                    placeholder="Search for a field..."
+                    value="{{ query }}"
+                    autofocus
+                >
+                <button type="submit" class="search-button">Search</button>
+            </form>
+        </div>
+        
+        {% if query %}
+            {% if fields %}
+                <div class="results-info">
+                    Found {{ fields|length }} field{{ fields|length|pluralize }} matching "{{ query }}"
+                </div>
+                
+                {% for field in fields %}
+                    <div class="field-card">
+                        <div class="field-header">
+                            <h2 class="field-name">{{ field.name }}</h2>
+                            <div class="field-info">
+                                <span class="field-badge">📚 Domain: {{ field.domain }}</span>
+                                <span class="field-badge">🎯 Area: {{ field.area }}</span>
+                                <span class="field-badge">🔬 Type: {{ field.field_type }}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="subfields-section">
+                            <h3 class="subfields-title">
+                                Subfields
+                                <span class="subfield-count">{{ subfields_by_field|dict_lookup:field|length }}</span>
+                            </h3>
+                            
+                            {% with subfields=subfields_by_field|dict_lookup:field %}
+                                {% if subfields %}
+                                    <div class="subfields-grid">
+                                        {% for subfield in subfields %}
+                                            <div class="subfield-item">
+                                                <div class="subfield-name">{{ subfield.name }}</div>
+                                                <div class="subfield-details">
+                                                    <div>{{ subfield.domain }}</div>
+                                                    <div>Type: {{ subfield.field_type }}</div>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <div class="no-subfields">
+                                        No subfields found for this field yet.
+                                    </div>
+                                {% endif %}
+                            {% endwith %}
+                        </div>
+                    </div>
+                {% endfor %}
+                
+            {% else %}
+                <div class="no-results">
+                    <div class="no-results-icon">🔍</div>
+                    <h2>No Results Found</h2>
+                    <p>No fields found matching "{{ query }}"</p>
+                    <p style="margin-top: 10px; color: #999;">Try searching for: Machine Learning, Database, AI, Physics</p>
+                </div>
+            {% endif %}
+        {% endif %}
+        
+        <a href="{% url 'home' %}" class="back-link">← Back to Home</a>
+    </div>
+</body>
+</html>
